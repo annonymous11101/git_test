@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drink Reminder</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;S
+      background: linear-gradient(135deg, #667eea 0%, #00aeff 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    h1 {
+      margin-bottom: 1.5rem;
+      color: #4a5568;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    
+    .form-section {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-section h3 {
+      margin-bottom: 1rem;
+      color: #4a5568;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #2d3748;
+      font-weight: 500;
+      text-align: left;
+    }
+    
+    input[type="number"], select {
+      padding: 12px 16px;
+      width: 100%;
+      margin: 10px 0 20px 0;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .gender-options {
+      display: flex;
+      gap: 15px;
+      margin: 10px 0 20px 0;
+    }
+    
+    .gender-option {
+      flex: 1;
+      padding: 12px;
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .gender-option:hover {
+      background: #edf2f7;
+      border-color: #cbd5e0;
+    }
+    
+    .gender-option.selected {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .recommendation {
+      background: #e6fffa;
+      border: 2px solid #4fd1c7;
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      display: none;
+    }
+    
+    .recommendation h4 {
+      color: #285e61;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+    }
+    
+    .recommendation p {
+      color: #2c7a7b;
+      margin: 0;
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    #calculateBtn {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    
+    #calculateBtn:hover {
+      box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+    }
+    
+    #stopBtn {
+      background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+    }
+    
+    #stopBtn:hover {
+      box-shadow: 0 10px 20px rgba(245, 101, 101, 0.3);
+    }
+    
+    #status {
+      margin-top: 1rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #2d3748;
+    }
+    
+    .running {
+      color: #e53e3e;
+      transition: color 0.3s ease;
+    }
+    
+    .permission-warning {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .success-message {
+      background: #c6f6d5;
+      color: #2f855a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .reminder-section {
+      display: none;
+    }
+    
+    .reminder-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>aplikasi pengingat minum air</h1>
+    
+    <div class="form-section">
+      <h3>Data Pribadi</h3>
+      
+      <label>Gender:</label>
+      <div class="gender-options">
+        <div class="gender-option" data-gender="male">👨 Pria</div>
+        <div class="gender-option" data-gender="female">👩 Wanita</div>
+      </div>
+      
+      <label for="age">Umur (tahun):</label>
+      <input type="number" id="age" min="1" max="120" placeholder="Masukkan umur Anda" />
+      
+      <label for="weight">Berat Badan (kg):</label>
+      <input type="number" id="weight" min="1" max="300" placeholder="Masukkan berat badan Anda" />
+      
+      <button id="calculateBtn">Hitung Kebutuhan Air</button>
+      
+      <div id="recommendation" class="recommendation">
+        <h4>Hari ini kamu minimal harus minum</h4>
+        <p id="recommendationText">-</p>
+      </div>
+    </div>
+    
+    <div id="reminderSection" class="reminder-section">
+      <div id="permissionWarning" class="permission-warning">
+        tolong aktifkan notifikasi agar bisa diingat!
+      </div>
+      <div id="successMessage" class="success-message">
+        pengingat sudah di aktifkan! 🎉
+      </div>
+      
+      <label for="interval">Ingatkan setiap (menit):</label>
+      <input type="number" id="interval" min="1" max="1440" value="30" placeholder="e.g. 30" />
+      
+      <div class="buttons">
+        <button id="startBtn">Mulai Pengingat</button>
+        <button id="stopBtn">Stop Pengingat</button>
+      </div>
+      <p id="status">Status: <span class="running">Tidak Berjalan</span></p>
+    </div>
+  </div>
+
+  <script>
+    let intervalId;
+    let isRunning = false;
+    let selectedGender = null;
+    let dailyRecommendationML = 0;
+
+    // Request notification permission on page load
+    document.addEventListener("DOMContentLoaded", async () => {
+      await requestNotificationPermission();
+      updateUI();
+      setupGenderSelection();
+    });
+
+    function setupGenderSelection() {
+      const genderOptions = document.querySelectorAll('.gender-option');
+      
+      genderOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          // Remove selected class from all options
+          genderOptions.forEach(opt => opt.classList.remove('selected'));
+          
+          // Add selected class to clicked option
+          option.classList.add('selected');
+          selectedGender = option.dataset.gender;
+        });
+      });
+    }
+
+    document.getElementById('calculateBtn').addEventListener('click', () => {
+      const age = parseInt(document.getElementById('age').value);
+      const weight = parseInt(document.getElementById('weight').value);
+      
+      if (!selectedGender) {
+        alert('Silakan pilih gender terlebih dahulu.');
+        return;
+      }
+      
+      if (isNaN(age) || age <= 0) {
+        alert('Silakan masukkan umur yang valid.');
+        return;
+      }
+      
+      if (isNaN(weight) || weight <= 0) {
+        alert('Silakan masukkan berat badan yang valid.');
+        return;
+      }
+      
+      // Calculate daily water requirement based on the formula
+      let multiplier;
+      if (age < 30) {
+        multiplier = selectedGender === 'male' ? 35 : 30;
+      } else {
+        multiplier = selectedGender === 'male' ? 30 : 35;
+      }
+      
+      dailyRecommendationML = weight * multiplier;
+      
+      // Show recommendation
+      const recommendationDiv = document.getElementById('recommendation');
+      const recommendationText = document.getElementById('recommendationText');
+      
+      const genderText = selectedGender === 'male' ? 'Pria' : 'Wanita';
+      const ageGroup = age < 30 ? 'dibawah 30 tahun' : 'diatas 30 tahun';
+      
+      recommendationText.innerHTML = `
+        <strong>${dailyRecommendationML} ml per hari</strong><br>
+        <small>Formula: ${genderText} ${ageGroup} = ${multiplier} × ${weight} kg</small>
+      `;
+      
+      recommendationDiv.style.display = 'block';
+      
+      // Show reminder section
+      document.getElementById('reminderSection').classList.add('active');
+      
+      // Calculate suggested interval (divide daily requirement by reasonable number of drinks)
+      const suggestedInterval = Math.round((16 * 60) / 8); // 8 drinks in 16 hours (awake time)
+      document.getElementById('interval').value = suggestedInterval;
+    });
+
+    async function requestNotificationPermission() {
+      if ("Notification" in window) {
+        if (Notification.permission === "default") {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            showPermissionWarning();
+          }
+        } else if (Notification.permission === "denied") {
+          showPermissionWarning();
+        }
+      } else {
+        showPermissionWarning();
+      }
+    }
+
+    function showPermissionWarning() {
+      document.getElementById("permissionWarning").style.display = "block";
+    }
+
+    function hideMessages() {
+      document.getElementById("permissionWarning").style.display = "none";
+      document.getElementById("successMessage").style.display = "none";
+    }
+
+    function showSuccessMessage() {
+      hideMessages();
+      const successMsg = document.getElementById("successMessage");
+      successMsg.style.display = "block";
+      setTimeout(() => {
+        successMsg.style.display = "none";
+      }, 3000);
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      if (dailyRecommendationML === 0) {
+        alert("Silakan hitung kebutuhan air harian terlebih dahulu.");
+        return;
+      }
+      
+      const minutes = parseInt(document.getElementById("interval").value);
+      
+      if (isNaN(minutes) || minutes <= 0) {
+        alert("Silakan masukkan interval yang valid (1 menit atau lebih).");
+        return;
+      }
+
+      if (minutes > 1440) {
+        alert("Silakan masukkan interval yang wajar (maksimal 24 jam = 1440 menit).");
+        return;
+      }
+
+      // Calculate how much water per reminder
+      const waterPerReminder = Math.round(dailyRecommendationML / (16 * 60 / minutes)); // 16 hours awake time
+
+      // Stop any existing interval
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+
+      // Start new interval
+      intervalId = setInterval(() => {
+        showNotification(
+          "💧 Saatnya Minum Air!", 
+          `Minum sekitar ${waterPerReminder} ml air. Target harian: ${dailyRecommendationML} ml`
+        );
+      }, minutes * 60 * 1000);
+
+      isRunning = true;
+      showNotification(
+        "⏳ Pengingat Dimulai!", 
+        `Anda akan diingatkan setiap ${minutes} menit untuk minum air.`
+      );
+      showSuccessMessage();
+      updateUI(minutes);
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      
+      isRunning = false;
+      showNotification("⏹ Pengingat Dihentikan", "Pengingat minum air dihentikan.");
+      updateUI();
+    });
+
+    function updateUI(minutes = null) {
+      const statusElement = document.querySelector(".running");
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+
+      if (isRunning && minutes) {
+        statusElement.textContent = `Berjalan setiap ${minutes} menit`;
+        statusElement.style.color = "#38a169";
+        startBtn.textContent = "Restart Pengingat";
+        stopBtn.disabled = false;
+      } else {
+        statusElement.textContent = "Tidak Berjalan";
+        statusElement.style.color = "#e53e3e";
+        startBtn.textContent = "Mulai Pengingat";
+        stopBtn.disabled = !isRunning;
+      }
+    }
+
+    // Enhanced notification function with fallback
+    function showNotification(title, body) {
+      // Check if notifications are supported and permitted
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          const notification = new Notification(title, {
+            body: body,
+            icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%234299e1'/%3E%3Ctext x='50' y='60' text-anchor='middle' font-size='40' fill='white'%3E💧%3C/text%3E%3C/svg%3E",
+            requireInteraction: false,
+            silent: false
+          });
+
+          // Auto-close notification after 4 seconds
+          setTimeout(() => {
+            notification.close();
+          }, 4000);
+
+          // Handle notification click
+          notification.onclick = function() {
+            window.focus();
+            notification.close();
+          };
+
+        } catch (error) {
+          console.log("Notification error:", error);
+          showFallbackAlert(title, body);
+        }
+      } else {
+        // Fallback for when notifications aren't available
+        showFallbackAlert(title, body);
+      }
+    }
+
+    function showFallbackAlert(title, body) {
+      // Visual notification fallback
+      alert(`${title}\n${body}`);
+    }
+
+    // Cleanup interval when page is closed
+    window.addEventListener("beforeunload", () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    });
+
+    // Handle visibility change (pause when tab is hidden, resume when visible)
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        // Page is hidden - notifications will still work
+        console.log("Page hidden - notifications continue in background");
+      } else {
+        // Page is visible again
+        console.log("Page visible - welcome back!");
+      }
+    });
+  </script>
+</body>
+</html>
