@@ -7,7 +7,7 @@
   <style>
     body {
         font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #00aeff 100%);
+        background: linear-gradient(135deg, #002fff 0%, #8fdbff 100%);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -16,6 +16,37 @@
         padding: 20px;
         box-sizing: border-box;
     }
+
+    /* Add active state for all buttons */
+button:active, 
+.gender-option:active, 
+.aktivitas .Activities:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+    
+    .aktivitas .Activities {
+  padding: 12px;
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+    .aktivitas .Activities:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.aktivitas .Activities.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  font-weight: 600;
+}
     
     .container {
       background: rgba(255, 255, 255, 0.95);
@@ -220,6 +251,13 @@
     .reminder-section.active {
       display: block;
     }
+    
+    .Activities small {
+      font-size: 0.75rem;
+      color: #718096;
+      margin-top: 4px;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -240,6 +278,15 @@
       
       <label for="weight">Berat Badan (kg):</label>
       <input type="number" id="weight" min="1" max="300" placeholder="Masukkan berat badan Anda" />
+
+      <div class="aktivitas">
+        <div class="Activities" data-aktivitas="jalan">🚶 Jalan kaki <small>(ringan)</small></div>
+        <div class="Activities" data-aktivitas="jogging">🏃 Jogging <small>(sedang)</small></div>
+        <div class="Activities" data-aktivitas="Gym">🏋️ Ngegym <small>(berat)</small></div>
+      </div>
+
+      <label for="activityDuration">Durasi Aktivitas (menit):</label>
+      <input type="number" id="activityDuration" min="5" max="180" value="30" placeholder="e.g. 30" />
       
       <button id="calculateBtn">Hitung Kebutuhan Air</button>
       
@@ -271,6 +318,7 @@
   <script>
     let intervalId;
     let isRunning = false;
+    let selectedActivities = null;
     let selectedGender = null;
     let dailyRecommendationML = 0;
 
@@ -279,6 +327,7 @@
       await requestNotificationPermission();
       updateUI();
       setupGenderSelection();
+      SetupActivitiesSelection();
     });
 
     function setupGenderSelection() {
@@ -295,57 +344,93 @@
         });
       });
     }
+    
+    function SetupActivitiesSelection() {
+  const activityButtons = document.querySelectorAll('.aktivitas .Activities'); // ✅ Correct selector
+  activityButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove 'selected' from all
+      activityButtons.forEach(btn => btn.classList.remove('selected'));
+      // Add 'selected' to clicked button
+      button.classList.add('selected');
+      selectedActivities = button.dataset.aktivitas;
+    });
+  });
+}
 
-    document.getElementById('calculateBtn').addEventListener('click', () => {
-      const age = parseInt(document.getElementById('age').value);
-      const weight = parseInt(document.getElementById('weight').value);
-      
-      if (!selectedGender) {
+        document.getElementById('calculateBtn').addEventListener('click', () => {
+    const age = parseInt(document.getElementById('age').value);
+    const weight = parseInt(document.getElementById('weight').value);
+    const activityDurationMinutes = parseInt(document.getElementById('activityDuration').value);
+  
+    if (!selectedGender) {
         alert('Silakan pilih gender terlebih dahulu.');
         return;
-      }
-      
-      if (isNaN(age) || age <= 0) {
+    }
+    if (!selectedActivities) {
+        alert('Silakan pilih aktivitas terlebih dahulu.');
+        return;
+    }
+    if (isNaN(age) || age <= 0) {
         alert('Silakan masukkan umur yang valid.');
         return;
-      }
-      
-      if (isNaN(weight) || weight <= 0) {
+    }
+    if (isNaN(weight) || weight <= 0) {
         alert('Silakan masukkan berat badan yang valid.');
         return;
-      }
-      
-      // Calculate daily water requirement based on the formula
-      let multiplier;
-      if (age < 30) {
+    }
+    if (isNaN(activityDurationMinutes) || activityDurationMinutes < 5) {
+        alert('Silakan masukkan durasi aktivitas yang valid (minimal 5 menit).');
+        return;
+    }
+
+    // Base water need (ml per kg) based on age and gender
+    let multiplier;
+    if (age < 30) {
         multiplier = selectedGender === 'male' ? 35 : 30;
-      } else {
+    } else {
         multiplier = selectedGender === 'male' ? 30 : 35;
-      }
-      
-      dailyRecommendationML = weight * multiplier;
-      
-      // Show recommendation
-      const recommendationDiv = document.getElementById('recommendation');
-      const recommendationText = document.getElementById('recommendationText');
-      
-      const genderText = selectedGender === 'male' ? 'Pria' : 'Wanita';
-      const ageGroup = age < 30 ? 'dibawah 30 tahun' : 'diatas 30 tahun';
-      
-      recommendationText.innerHTML = `
-        <strong>${dailyRecommendationML} ml per hari</strong><br>
-        <small>Formula: ${genderText} ${ageGroup} = ${multiplier} × ${weight} kg</small>
-      `;
-      
-      recommendationDiv.style.display = 'block';
-      
-      // Show reminder section
-      document.getElementById('reminderSection').classList.add('active');
-      
-      // Calculate suggested interval (divide daily requirement by reasonable number of drinks)
-      const suggestedInterval = Math.round((16 * 60) / 8); // 8 drinks in 16 hours (awake time)
-      document.getElementById('interval').value = suggestedInterval;
-    });
+    }
+    let baseWater = weight * multiplier;
+
+    // Activity-based extra fluid (per 30 minutes)
+    const activityFactor = {
+        jalan: { mlPer30Min: 300 },   // Light
+        jogging: { mlPer30Min: 500 }, // Moderate
+        Gym: { mlPer30Min: 700 }       // Intense
+    };
+
+  const selectedActivity = activityFactor[selectedActivities];
+  const hoursActive = activityDurationMinutes / 60;
+  const extraWater = selectedActivity.mlPer30Min * (hoursActive / 0.5); // per 30 min
+
+  // Total daily recommendation
+  dailyRecommendationML = Math.round(baseWater + extraWater);
+
+  // Show recommendation
+  const recommendationDiv = document.getElementById('recommendation');
+  const recommendationText = document.getElementById('recommendationText');
+
+  const activityLabels = {
+    jalan: 'Jalan kaki',
+    jogging: 'Jogging',
+    Gym: 'Ngegym'
+  };
+
+  recommendationText.innerHTML = `
+    <strong>${dailyRecommendationML} ml per hari</strong><br>
+    <small>
+      Dasar: ${weight} kg × ${multiplier} ml/kg = ${baseWater} ml<br>
+      Aktivitas: ${activityLabels[selectedActivities]} selama ${activityDurationMinutes} menit → +${Math.round(extraWater)} ml
+    </small>
+  `;
+  recommendationDiv.style.display = 'block';
+  document.getElementById('reminderSection').classList.add('active');
+
+  // Suggest reminder interval
+  const suggestedInterval = Math.round((16 * 60) / 8);
+  document.getElementById('interval').value = suggestedInterval;
+});
 
     async function requestNotificationPermission() {
       if ("Notification" in window) {
